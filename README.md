@@ -373,3 +373,145 @@ print('Thumbnail saved in.', thumbnail_file_name)
     
 2. Save your changes and run the program once for each of the image files in the **images** folder, opening the **thumbnail.jpg** file that is generated in the same folder as your code file for each image.
 
+# Exercise 3: Classify Images with Custom Vision
+
+The **Custom Vision** service enables you to create computer vision models that are trained on your own images. You can use it to train *image classification* and *object detection* models; which you can then publish and consume from applications.
+
+In this exercise, you will use the Custom Vision service to train an image classification model that can identify three classes of fruit (apple, banana, and orange).
+
+## Create Custom Vision resources
+
+Before you can train a model, you will need Azure resources for *training* and *prediction*. You can create **Custom Vision** resources for each of these tasks, or you can create a single **Cognitive Services** resource and use it for either (or both).
+
+In this exercise, you'll create **Custom Vision resources for training and prediction** so that you can manage access and costs for these workloads separately.
+
+1. In a new browser tab, open the Azure portal at `https://portal.azure.com`, and sign in using the Microsoft account associated with your Azure subscription.
+2. Select the **Create a resource** button, search for *custom vision*, and create a **Custom Vision** resource with the following settings:
+    - **Create options**: Both
+    - **Subscription**: *Your Azure subscription*
+    - **Resource group**: *Choose or create a resource group (if you are using a restricted subscription, you may not have permission to create a new resource group - use the one provided)*
+    - **Region**: *Choose any available region*
+    - **Name**: *Enter a unique name*
+    - **Training pricing tier**: F0
+    - **Prediction pricing tier**: F0
+
+    > **Note**: If you already have an F0 custom vision service in your subscription, select **S0** for this one.
+
+1. Click on **Review+create>Create**
+3. Wait for the resources to be created, and then view the deployment details and note that two Custom Vision resources are provisioned; one for training, and another for prediction (evident by the **-Prediction** suffix). You can view these by navigating to the resource group where you created them.
+
+> **Important**: **Each resource has its own *endpoint* and *keys*, which are used to manage access from your code**. To train an image classification model, your code must use the *training* resource (with its endpoint and key); and to use the trained model to predict image classes, your code must use the *prediction* resource (with its endpoint and key).
+
+## Create a Custom Vision project
+
+To train an image classification model, you need to create a Custom Vision project based on your training resource. To do this, you'll use the Custom Vision portal.
+
+1. In the GitHub repository, click on **Code>Local>Download ZIP** to download the repository, which contains the images needed for next steps. Unzip the folder to use it later.
+
+    ![Download ZIP](images/download-zip.jpg)
+
+
+2. In a new browser tab, open the Custom Vision portal at `https://customvision.ai`. If prompted, sign in using the Microsoft account associated with your Azure subscription and agree to the terms of service.
+3. In the Custom Vision portal, create a **new project** with the following settings:
+    - **Name**: Classify Fruit
+    - **Description**: Image classification for fruit
+    - **Resource**: *The Custom Vision resource you created previously*
+    - **Project Types**: Classification
+    - **Classification Types**: Multiclass (single tag per image)
+    - **Domains**: Food
+1. **Create Project**
+4. In the new project, click **\[+\] Add images**, and select all of the files in the downloaded repository (unzipped folder), in the **images/Exercise-3/apple** folder you viewed previously. Then upload the image files, specifying the tag *apple*, like this:
+
+![Upload apple with apple tag](./images/apple-tags.jpg)
+   
+5. Repeat the previous step to upload the images in the **banana** folder with the tag *banana*, and the images in the **orange** folder with the tag *orange*.
+6. Explore the images you have uploaded in the Custom Vision project - there should be 15 images of each class.
+    
+7. In the Custom Vision project, above the images, click **Train** to train a classification model using the tagged images. Select the **Quick Training** option, and then wait for the training iteration to complete (this may take some minutes).
+8. When the model iteration (Iteration 1) has been trained, review the *Precision*, *Recall*, and *AP* performance metrics - these measure the prediction accuracy of the classification model, and should all be high. **Click on the information icon next to the metrics to understand them**.
+
+> **Note**: The performance metrics are based on a probability threshold of 50% for each prediction (in other words, if the model calculates a 50% or higher probability that an image is of a particular class, then that class is predicted). You can adjust this at the top-left of the page.
+
+## Test the model
+
+Now that you've trained the model, you can test it.
+
+1. Above the performance metrics, click **Quick Test**.
+2. In the **Image URL** box, type `https://aka.ms/apple-image` and click &#10132;
+3. View the predictions returned by your model - the probability score for *apple* should be the highest.
+
+4. Close the **Quick Test** window.
+
+## View the project settings
+
+The project you have created has been assigned a unique identifier, which you will need to specify in any code that interacts with it. Lets find it as we want to call our model from code.
+
+1. Click the *settings* (&#9881;) icon at the top right of the **Performance** page to view the project settings.
+2. Under **General** (on the left), note/copy the **Project Id** that uniquely identifies this project.
+
+## Publish the image classification model
+
+Now you're ready to publish your trained model so that it can be used from a client application.
+
+1. In the Custom Vision portal, on the **Performance** page,  click **&#128504; Publish** to publish the trained model with the following settings:
+    - **Model name**: fruit-classifier
+    - **Prediction Resource**: *The **prediction** resource you created previously which ends with "-Prediction" (<u>not</u> the training resource)*.
+1. **Publish**
+2. When the model is published, click on the **Prediction URL** option. Collect the highlighted information:
+    - **Prediction endpoint** -> just the highlighted section, including last "/". For example "https://xxxxxxxxxx.cognitiveservices.azure.com/"
+    - **Prediction-Key**
+
+    ![prediction information](images/classify-pred.jpg)
+
+## Use the image classifier from a client application
+
+Now that you've published the image classification model, you can use it from a client application. 
+
+1. In GitHub Codespace, open a **Terminal** and run the following command to install necessary libraries.
+
+**Python**
+
+```
+pip install azure-cognitiveservices-vision-customvision==3.1.0
+```
+
+> **Note**: The Python SDK package includes both training and prediction packages, and may already be installed.
+
+
+3. Lets keep the sensitive configuration values as GitHub Secrets (remember, anyone could call your model if the get these information!). On your GitHub repository website, go to **Settings>Secrets>Actions**.
+
+    ![GitHub Action Secrets](images/github-secrets-actions.jpg)
+
+    - Create 4 **New repository secrets**.
+        - Name: **PREDICTIONENDPOINT** Secret: **The endpoint from your Custom Vision prediction resource**.
+        - Name: **PREDICTIONKEY** Secret: **Key for the service**
+        - Name: **PROJECTID** Secret: **ID for the created model**
+        - Name: **MODELNAME** Secret **fruit-classifier** (this is the name given to the trained model)
+
+1. Repeat same process and same 4 keys below **Settings>Secrets>Codespaces** section.
+
+
+
+4. Open the code file for your client application (*Program.cs* for C#, *test-classification.py* for Python) and review the code it contains, noting the following details:
+    - Namespaces from the package you installed are imported
+    - The **Main** function retrieves the configuration settings, and uses the key and endpoint to create an authenticated **CustomVisionPredictionClient**.
+    - The prediction client object is used to predict a class for each image in the **test-images** folder, specifying the project ID and model name for each request. Each prediction includes a probability for each possible class, and only predicted tags with a probability greater than 50% are displayed.
+5. Return the integrated terminal for the **test-classifier** folder, and enter the following SDK-specific command to run the program:
+
+**C#**
+
+```
+dotnet run
+```
+
+**Python**
+
+```
+python test-classifier.py
+```
+
+6. View the label (tag) and probability scores for each prediction. You can view the images in the **test-images** folder to verify that the model has classified them correctly.
+
+## More information
+
+For more information about image classification with the Custom Vision service, see the [Custom Vision documentation](https://docs.microsoft.com/azure/cognitive-services/custom-vision-service/).
