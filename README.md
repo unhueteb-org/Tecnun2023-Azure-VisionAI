@@ -491,23 +491,16 @@ pip install azure-cognitiveservices-vision-customvision==3.1.0
 1. Repeat same process and same 4 keys below **Settings>Secrets>Codespaces** section.
 
 
-
-4. Open the code file for your client application (*Program.cs* for C#, *test-classification.py* for Python) and review the code it contains, noting the following details:
+4. Open the code file for your client application  *3-test-classification.py*  (Python) and review the code it contains, noting the following details:
     - Namespaces from the package you installed are imported
     - The **Main** function retrieves the configuration settings, and uses the key and endpoint to create an authenticated **CustomVisionPredictionClient**.
     - The prediction client object is used to predict a class for each image in the **test-images** folder, specifying the project ID and model name for each request. Each prediction includes a probability for each possible class, and only predicted tags with a probability greater than 50% are displayed.
-5. Return the integrated terminal for the **test-classifier** folder, and enter the following SDK-specific command to run the program:
-
-**C#**
-
-```
-dotnet run
-```
+5. Return the **Terminal** for the **test-classifier** folder, and enter the following SDK-specific command to run the program:
 
 **Python**
 
 ```
-python test-classifier.py
+python 3-test-classifier.py
 ```
 
 6. View the label (tag) and probability scores for each prediction. You can view the images in the **test-images** folder to verify that the model has classified them correctly.
