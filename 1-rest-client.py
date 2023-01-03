@@ -81,6 +81,17 @@ def GetLanguage(text):
     except Exception as ex:
         print(ex)
 
+# Test 1: Test the GetLanguage function
+def test_GetLanguage():
+    # Arrange
+    text = "This is a test of the GetLanguage function."
+    expected = "English"
+
+    # Act
+    actual = GetLanguage(text)
+
+    # Assert
+    assert actual == expected   
 
 if __name__ == "__main__":
     main()
