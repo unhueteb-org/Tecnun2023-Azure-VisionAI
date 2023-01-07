@@ -624,3 +624,153 @@ python 4-test-detector.py
 For more information about object detection with the Custom Vision service, see the [Custom Vision documentation](https://docs.microsoft.com/azure/cognitive-services/custom-vision-service/).
 
 
+# Exercise 5: Detect and Analyze Faces
+
+The ability to detect and analyze human faces is a core AI capability. In this exercise, you'll explore one of the Azure Cognitive Services that you can use to work with faces in images: the **Faces** service (**Computer Vision** service can also be used)
+
+While the **Computer Vision** service offers basic face detection (along with many other image analysis capabilities), the **Face** service provides more comprehensive functionality for facial analysis and recognition.
+
+> **Note**: From June 21st 2022, capabilities of cognitive services that return personally identifiable information are restricted to customers who have been granted [limited access](https://docs.microsoft.com/azure/cognitive-services/cognitive-services-limited-access). Additionally, capabilities that infer emotional state are no longer available. These restrictions may affect this lab exercise. We're working to address this, but in the meantime you may experience some errors when following the steps below; for which we apologize. For more details about the changes Microsoft has made, and why - see [Responsible AI investments and safeguards for facial recognition](https://azure.microsoft.com/blog/responsible-ai-investments-and-safeguards-for-facial-recognition/).
+
+## Provision a Cognitive Services resource
+
+We are going to use the multi **Cognitive Service** resource from previous exercises.
+
+
+## Prepare to use the Face SDK
+
+2. In GitHub Codespaces, open a terminal. Then install the Face SDK package by running the appropriate command for your language preference:
+
+    **Python**
+
+    ```
+    pip install azure-cognitiveservices-vision-face==0.4.1
+    ```
+    
+3. View the contents of the **5-analyze-faces.py** file.
+
+4. The **endpoint** and an authentication **key** for your cognitive services resource will be taken from the GitHub Secrets service (setup in previous exercise for your Corgnitive Service resource).
+
+
+6. On the code file and at the top, under the existing namespace references, find the comment **Import namespaces**. Then, under this comment, add the following language-specific code to import the namespaces you will need to use the Computer Vision SDK:
+
+    **Python**
+
+    ```Python
+    # Import namespaces
+    from azure.cognitiveservices.vision.face import FaceClient
+    from azure.cognitiveservices.vision.face.models import FaceAttributeType
+    from msrest.authentication import CognitiveServicesCredentials
+    ```
+
+7. In the **Main** function, note that the code to load the configuration settings has been provided. Then find the comment **Authenticate Face client**. Then, under this comment, add the following language-specific code to create and authenticate a **FaceClient** object:
+
+    
+
+    **Python**
+
+    ```Python
+    # Authenticate Face client
+    credentials = CognitiveServicesCredentials(cog_key)
+    face_client = FaceClient(cog_endpoint, credentials)
+    ```
+
+8. In the **Main** function, under the code you just added, note that the code displays a menu that enables you to call functions in your code to explore the capabilities of the Face service. You will implement these functions in the remainder of this exercise.
+
+## Detect and analyze faces
+
+One of the most fundamental capabilities of the Face service is to detect faces in an image, and determine their attributes, such as head pose, blur, the presence of spectacles, and so on.
+
+1. In the code file for your application, in the **Main** function, examine the code that runs if the user selects menu option **1**. This code calls the **DetectFaces** function, passing the path to an image file.
+2. Find the **DetectFaces** function in the code file, and under the comment **Specify facial features to be retrieved**, add the following code:
+
+    
+
+    **Python**
+
+    ```Python
+    # Specify facial features to be retrieved
+    features = [FaceAttributeType.occlusion,
+                FaceAttributeType.blur,
+                FaceAttributeType.glasses]
+    ```
+
+3. In the **DetectFaces** function, under the code you just added, find the comment **Get faces** and add the following code:
+
+
+
+    **Python**
+
+    ```Python
+    # Get faces
+    with open(image_file, mode="rb") as image_data:
+        detected_faces = face_client.face.detect_with_stream(image=image_data,
+            return_face_attributes=features,                     return_face_id=False)
+
+        if len(detected_faces) > 0:
+            print(len(detected_faces), 'faces detected.')
+
+            # Prepare image for drawing
+            fig = plt.figure(figsize=(8, 6))
+            plt.axis('off')
+            image = Image.open(image_file)
+            draw = ImageDraw.Draw(image)
+            color = 'lightgreen'
+            face_count = 0
+
+            # Draw and annotate each face
+            for face in detected_faces:
+
+                # Get face properties
+                face_count += 1
+                print('\nFace number {}'.format(face_count))
+
+                detected_attributes = face.face_attributes.as_dict()
+                if 'blur' in detected_attributes:
+                    print(' - Blur:')
+                    for blur_name in detected_attributes['blur']:
+                        print('   - {}: {}'.format(blur_name, detected_attributes['blur'][blur_name]))
+                        
+                if 'occlusion' in detected_attributes:
+                    print(' - Occlusion:')
+                    for occlusion_name in detected_attributes['occlusion']:
+                        print('   - {}: {}'.format(occlusion_name, detected_attributes['occlusion'][occlusion_name]))
+
+                if 'glasses' in detected_attributes:
+                    print(' - Glasses:{}'.format(detected_attributes['glasses']))
+
+                # Draw and annotate face
+                r = face.face_rectangle
+                bounding_box = ((r.left, r.top), (r.left + r.width, r.top + r.height))
+                draw = ImageDraw.Draw(image)
+                draw.rectangle(bounding_box, outline=color, width=5)
+                annotation = 'Face ID: {}'.format(face.face_id)
+                plt.annotate(annotation,(r.left, r.top), backgroundcolor=color)
+
+            # Save annotated image
+            plt.imshow(image)
+            outputfile = 'detected_faces.jpg'
+            fig.savefig(outputfile)
+
+            print('\nResults saved in', outputfile)
+    ```
+
+4. Examine the code you added to the **DetectFaces** function. It analyzes an image file and detects any faces it contains, including attributes for age, emotions, and the presence of spectacles. The details of each face are displayed, including a unique face identifier that is assigned to each face; and the location of the faces is indicated on the image using a bounding box.
+5. Save your changes and return to **Terminal**, and enter the following command to run the program:
+
+    **Python**
+
+    ```
+    python 5-analyze-faces.py
+    ```
+
+6. When prompted, enter **1** and observe the output, which should include the ID and attributes of each face detected.
+7. View the **detected_faces.jpg** file that is generated in the same folder as your code file to see the annotated faces.
+
+## More information
+
+There are several additional features available within the **Face** service, but following the [Responsible AI Standard](https://aka.ms/aah91ff) those are restricted behind a Limited Access policy. These features include identifying, verifying, and creating facial recognition models. To learn more and apply for access, see the [Limited Access for Cognitive Services](https://docs.microsoft.com/en-us/azure/cognitive-services/cognitive-services-limited-access).
+
+For more information about using the **Computer Vision** service for face detection, see the [Computer Vision documentation](https://docs.microsoft.com/azure/cognitive-services/computer-vision/concept-detecting-faces).
+
+To learn more about the **Face** service, see the [Face documentation](https://docs.microsoft.com/azure/cognitive-services/face/).

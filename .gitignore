@@ -3,3 +3,4 @@ __pycache__/*
 2-image-analysis-done.py
 objects.jpg
 thumbnail.png
+detected_faces.jpg
