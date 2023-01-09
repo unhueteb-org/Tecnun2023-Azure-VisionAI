@@ -9,6 +9,13 @@ permissions:
 env:
   COG_SERVICE_ENDPOINT: ${{ secrets.COG_SERVICE_ENDPOINT }}
   COG_SERVICE_KEY: ${{ secrets.COG_SERVICE_KEY }}
+  MODELNAME: ${{ secrets.MODELNAME}}
+  MODELNAME2: ${{ secrets.MODELNAME2}}
+  PREDICTIONENDPOINT: ${{ secrets.PREDICTIONENDPOINT}}
+  PREDICTIONKEY: ${{ secrets.PREDICTIONKEY}}
+  PROJECTID: ${{ secrets.PROJECTID}}
+  PROJECTID2: ${{ secrets.PROJECTID2}}
+
 
 jobs:
   build:
