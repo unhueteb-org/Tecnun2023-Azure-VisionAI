@@ -774,3 +774,144 @@ There are several additional features available within the **Face** service, but
 For more information about using the **Computer Vision** service for face detection, see the [Computer Vision documentation](https://docs.microsoft.com/azure/cognitive-services/computer-vision/concept-detecting-faces).
 
 To learn more about the **Face** service, see the [Face documentation](https://docs.microsoft.com/azure/cognitive-services/face/).
+
+# Exercise 6: Read Text in Images
+
+Optical character recognition (OCR) is a subset of computer vision that deals with reading text in images and documents. The **Computer Vision** service provides two APIs for reading text, which you'll explore in this exercise.
+
+
+## Provision a Cognitive Services resource
+
+We are going to use the multi **Cognitive Service** resource from previous exercises.
+
+## Prepare to use the Computer Vision SDK
+
+In this exercise, you'll complete a partially implemented client application that uses the Computer Vision SDK to read text.
+
+
+
+2. Open a **Terminal** . Then install the Computer Vision SDK package by running the appropriate command for your language preference:
+
+
+**Python**
+
+```
+pip install azure-cognitiveservices-vision-computervision==0.7.0
+```
+
+3. The **endpoint** and an authentication **key** for your cognitive services resource will be read from the GitHub Secrets service.
+
+4. Open the **6-read-textpy** code file and at the top, under the existing namespace references, find the comment **Import namespaces**. Then, under this comment, add the following language-specific code to import the namespaces you will need to use the Computer Vision SDK:
+
+
+
+**Python**
+
+```Python
+# import namespaces
+from azure.cognitiveservices.vision.computervision import ComputerVisionClient
+from azure.cognitiveservices.vision.computervision.models import OperationStatusCodes
+from msrest.authentication import CognitiveServicesCredentials
+```
+
+5. In the code file for your client application, in the **Main** function, note that the code to load the configuration settings has been provided. Then find the comment **Authenticate Computer Vision client**. Then, under this comment, add the following language-specific code to create and authenticate a Computer Vision client object:
+
+
+
+**Python**
+
+```Python
+# Authenticate Computer Vision client
+credential = CognitiveServicesCredentials(cog_key) 
+cv_client = ComputerVisionClient(cog_endpoint, credential)
+```
+
+## Use the Read API to read text from an image
+
+The **Read** API uses a newer text recognition model and generally performs better for larger images that contain a lot of text, but will work for any amount of text. It also supports text extraction from *.pdf* files, and can recognize both printed text and handwritten text in multiple languages.
+
+The **Read** API uses an asynchronous operation model, in which a request to start text recognition is submitted; and the operation ID returned from the request can subsequently be used to check progress and retrieve results.
+
+1. In the code file for your application, in the **Main** function, examine the code that runs if the user selects menu option **1**. This code calls the **GetTextRead** function, passing the path to an image  file.
+2. In the **images/Exercise-6** folder, click on **Lincoln.jpg** to view the file that your code will process.
+3. Back in the code file , find the **GetTextRead** function, and under the existing code that prints a message to the console, add the following code:
+
+
+
+**Python**
+
+```Python
+# Use Read API to read text in image
+with open(image_file, mode="rb") as image_data:
+    read_op = cv_client.read_in_stream(image_data, raw=True)
+
+    # Get the async operation ID so we can check for the results
+    operation_location = read_op.headers["Operation-Location"]
+    operation_id = operation_location.split("/")[-1]
+
+    # Wait for the asynchronous operation to complete
+    while True:
+        read_results = cv_client.get_read_result(operation_id)
+        if read_results.status not in [OperationStatusCodes.running, OperationStatusCodes.not_started]:
+            break
+        time.sleep(1)
+
+    # If the operation was successfully, process the text line by line
+    if read_results.status == OperationStatusCodes.succeeded:
+        for page in read_results.analyze_result.read_results:
+            for line in page.lines:
+                print(line.text)
+                # Uncomment the following line if you'd like to see the bounding box 
+                #print(line.bounding_box)
+         return 1
+
+    else:
+            print("Text read failed:\n{}".format(read_results.status))
+            return 0
+```
+
+4. Examine the code you added to the **GetTextRead** function. It submits a request for a read operation, and then repeatedly checks status until the operation has completed. If it was successful, the code processes the results by iterating through each page, and then through each line.
+5. Save your changes and return to the **Terminal**, and enter the following command to run the program:
+
+**Python**
+
+```
+python 6-read-text.py
+```
+
+6. When prompted, enter **1** and observe the output, which is the text extracted from the image.
+7. If desired, go back to the code you added to **GetTextRead** and find the comment in the nested `for` loop at the end, uncomment the last line, save the file, and rerun steps 5 and 6 above to see the bounding box of each line. Be sure to re-comment that line and save the file before moving on.
+
+## Use the Read API to read text from an document
+
+1. In the code file for your application, in the **Main** function, examine the code that runs if the user selects menu option **2**. This code calls the **GetTextRead** function, passing the path to a PDF document file.
+2. In the **images/Exercise-6** folder, right-click **Rome.pdf** and select **Reveal in File Explorer**. Then in File Explorer, open the PDF file to view it.
+3. Return to the **Terminal** and enter the following command to run the program:
+
+**Python**
+
+```
+python 6-read-text.py
+```
+
+6. When prompted, enter **2** and observe the output, which is the text extracted from the document.
+
+## Read handwritten text
+
+In addition to printed text, the **Read** API can extract handwritten text in English..
+
+1. In the code file for your application, in the **Main** function, examine the code that runs if the user selects menu option **3**. This code calls the **GetTextRead** function, passing the path to an image file.
+2. In the **images/Exercise-6** folder, open **Note.jpg** to view the image that your code will process.
+3. Return to the **Terminal** and enter the following command to run the program:
+
+**Python**
+
+```
+python 6-read-text.py
+```
+
+4. When prompted, enter **3** and observe the output, which is the text extracted from the document.
+
+## More information
+
+For more information about using the **Computer Vision** service to read text, see the [Computer Vision documentation](https://docs.microsoft.com/azure/cognitive-services/computer-vision/concept-recognizing-text).

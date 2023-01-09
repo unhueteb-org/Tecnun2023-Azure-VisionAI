@@ -6,3 +6,4 @@ pip install azure-cognitiveservices-vision-computervision==0.7.0
 pip install azure-cognitiveservices-vision-customvision==3.1.0
 pip install azure-cognitiveservices-vision-customvision==3.1.0
 pip install azure-cognitiveservices-vision-face==0.4.1
+pip install azure-cognitiveservices-vision-computervision==0.7.0
