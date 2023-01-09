@@ -39,7 +39,7 @@ def DetectFaces(image_file):
 
     # Get faces
 
-#Test 5: test the main function
+#Test 6: test the main function
 def test_main():
     
     # Act

@@ -50,7 +50,7 @@ def GetTextRead(image_file):
 
 
 
-#Test 6: test the main function
+#Test 7: test the main function
 def test_GetTextRead():
         
         # Arrange

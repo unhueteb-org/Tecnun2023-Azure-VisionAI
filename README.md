@@ -42,6 +42,10 @@ Azure Cognitive Services are cloud-based services that encapsulate artificial in
 
 1. Repeat same process and same 2 keys below **Settings>Secrets>Codespaces** section.
 
+1. If your GitHub Codespace was started, you may need to **Reload** (warning will be shown):
+
+    ![Reload](images/reload.jpg)
+
 1. Your code during this labs will get the neccesary sensitive information from GitHub Secrets, instead of hard coding it (risk of exposing it!).
 
 ## Use a REST Interface

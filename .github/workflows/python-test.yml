@@ -1,0 +1,34 @@
+name: Python execution
+on: [push]
+
+permissions:
+  checks: write
+  actions: read
+  contents: read
+
+env:
+  COG_SERVICE_ENDPOINT: ${{ secrets.COG_SERVICE_ENDPOINT }}
+  COG_SERVICE_KEY: ${{ secrets.COG_SERVICE_KEY }}
+
+jobs:
+  build:
+    name: Python execution
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: sh .devcontainer/post-create.sh
+      - run : env
+      # Test 1.1
+      - run: pytest 1-rest-client.py
+      # Test 1.2
+      - run: pytest 1-sdk-client.py
+      # Test 2
+      - run: pytest 2-image-analysis.py
+      # Test 3
+      - run: pytest 3-test-classifier.py
+      # Test 4
+      - run: pytest 4-test-detector.py
+      # Test 5
+      - run: pytest 5-analyze-faces.py
+      # Test 6
+      - run: pytest 6-read-text.py
